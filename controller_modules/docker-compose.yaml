@@ -1,0 +1,29 @@
+version: '3'
+services:
+  mqtt:
+    image: docker.io/library/eclipse-mosquitto:2.0.11
+    ports:
+      - 1883:1883
+    restart: on-failure
+    volumes:
+      - ./mqtt/mosquitto.conf:/mosquitto/config/mosquitto.conf
+  nodered:
+    image: nodered/node-red:latest
+    environment:
+      - TZ=America/Chicago
+    ports:
+      - 1880:1880
+    volumes:
+      - ./nodered/data:/data
+      - ./controller/logs:/logs/
+  controller:
+    image: field-controller:latest
+    build:
+      context: ./controller/
+      dockerfile: ./Dockerfile
+    restart: on-failure
+    depends_on:
+      - mqtt
+    volumes:
+    - ./controller/configs:/configs/
+    - ./controller/logs:/logs/

@@ -1,0 +1,20 @@
+---
+- name: Define Project Root
+  ansible.builtin.import_playbook: "../utilities/define_project_root.yaml"
+  when: project_root is not defined 
+
+- name: Deploy Container
+  hosts: "{{ ('reachable' not in groups and 'unreachable' not in groups) | ternary('all', 'reachable') }}"
+  strategy: free
+  gather_facts: false
+  tasks:
+    - name: (Pre-Deploy) Stop Container
+      ansible.builtin.shell:
+        cmd: docker compose down
+        chdir: "{{ data_root }}"
+      become: true
+      failed_when: false
+
+    - name: Deploy Container
+      ansible.builtin.include_tasks: execute_deployment.yaml
+      with_items: "{{ containers }}"
