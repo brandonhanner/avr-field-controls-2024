@@ -1,6 +1,12 @@
 - name: Push Container Image (Tar)
   ansible.builtin.include_tasks: ../docker_utilities/push_docker_image.yaml
-  when: not item.use_registry | default(False)
+  when: (speedy_deploy is defined and speedy_deploy == false) or (speedy_deploy is undefined)
+
+- name: Copy over arduino-module source
+  ansible.posix.synchronize:
+    src: "{{ project_root }}/pi/arduino-adapter/"
+    dest: "{{ data_root }}/arduino-adapter/"
+  when: (speedy_deploy is defined and speedy_deploy == true) | default(False)
 
 - name: Ship Configs
   ansible.builtin.include_tasks: ship_configs.yaml

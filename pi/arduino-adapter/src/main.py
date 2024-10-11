@@ -66,7 +66,6 @@ class ArduinoAdapter(object):
         self.ser_lock = Lock()
 
         self.id = ""
-        self.type = ""
         self.interface = "eth0"
 
         self.relays = LePotatoRelayModule()
@@ -167,6 +166,7 @@ class ArduinoAdapter(object):
         # see if the config file has a configured identity already
         # if not, send off to provisioning
         id = self.config.get("id", None)
+
         if id is None:
             logger.debug("No ID found, going to provision")
             self.event_queue.put(Event("needs_provisioning_event"))
@@ -187,7 +187,7 @@ class ArduinoAdapter(object):
         self.run_state_stop = False
 
         self.mqtt_client.register_callback(f"{self.id}/relay/set", self.relay_commands)
-        if self.has_led_strip:
+        if self.has_led_strip and self.has_arduino:
             self.mqtt_client.register_callback(
                 f"{self.id}/progress_bar/set", self.led_commands
             )
@@ -238,7 +238,7 @@ class ArduinoAdapter(object):
         ip_addr = self.get_ip()
         pattern = []
 
-        if self.has_led_strip:
+        if self.has_led_strip and self.has_arduino:
             # generate the pixel pattern to show
             colors = ["r", "g", "b"]
 
@@ -288,7 +288,7 @@ class ArduinoAdapter(object):
         relay = None
         if isinstance(channel, int):
             if channel > 0 and channel <= len(self.relays.channels):
-                relay = channel
+                relay = channel - 1
 
         if state == "on" and relay is not None:
             self.relays.close_relay(relay)
@@ -311,7 +311,7 @@ class ArduinoAdapter(object):
         return pixel_cmd
 
     def led_commands(self, topic: str, msg: dict):
-        if self.has_led_strip:
+        if self.has_led_strip and self.has_arduino:
             pixel_data = msg.get("pixel_data", None)
             if pixel_data is not None:
                 pixel_cmd = self.generate_pixel_string(pixel_data=pixel_data)
@@ -322,7 +322,7 @@ class ArduinoAdapter(object):
                     now - self.last_pixel_write > 2
                 ):
                     self.ser_lock.acquire()
-                    # logger.debug(pixel_cmd)
+                    logger.debug(pixel_cmd)
                     self.ser_connection.write(pixel_cmd.encode("utf-8") + b"\n")
                     self.ser_lock.release()
 

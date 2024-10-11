@@ -6,7 +6,14 @@ import match
 import mqtt_client
 import time
 from loguru import logger
+from entities.bridge import Crack
 
+# ID map
+# 1 bridge 1
+# 2 bridge 2
+# 3 bridge 3
+# 4 power_lines
+# 5 railroad
 
 def mapRange(value, inMin, inMax, outMin, outMax):
     return outMin + (((value - inMin) / (inMax - inMin)) * (outMax - outMin))
@@ -23,20 +30,28 @@ class Controller(object):
         # create a match
         self.match = match.MatchModel()
 
+        self.power_line_id = 4
+        self.railroad_id = 5
+
     def handle_events(self, topic: str, msg: dict):
         parts = topic.split("/")
-        source = parts[0]
-        channel = parts[1]
-        subsystem = parts[2]
+        source = parts[0] # id
+        channel = parts[1] # events
+        subsystem = parts[2] # subsystem
 
-        # see if the source is a bridge
-        if source in (
-            [self.match.bridge.get_crack_ID("A"),self.match.bridge.get_crack_ID("B")]
-        ):
-            if subsystem in ["laser_detector"]:
-                event_type = msg.get("event_type", None)
-                if event_type == "hit":
-                    self.match.bridge.repair_damage(source)
+        if subsystem in ["laser_detector_1", "laser_detector_2"]:
+            event_type = msg.get("event_type", None)
+            if event_type == "hit":
+                crack_id = 0
+                if subsystem == "laser_detector_1":
+                    laser = 1
+                elif subsystem == "laser_detector_2":
+                    laser = 2
+
+                crack_id = laser + ((int(source)-1) * 2 ) # magic to alias the pi id and detector onto 1-6 IDs
+                logger.debug(f"Got a hit for crack {crack_id}")
+
+                self.match.bridge.repair_damage(crack_id)
 
         elif source == "ui":
             event_type = msg.get("event_type", None)
@@ -131,12 +146,14 @@ class Controller(object):
                 "A":
                 {
                     "id": self.match.railroad.get_damaged_spot_ID("A"),
-                    "damaged": self.match.railroad.get_damage("A")
+                    "damaged": self.match.railroad.get_damage("A"),
+                    "color": self.match.railroad.get_color("A")
                 },
                 "B":
                 {
                     "id": self.match.railroad.get_damaged_spot_ID("B"),
-                    "damaged": self.match.railroad.get_damage("B")
+                    "damaged": self.match.railroad.get_damage("B"),
+                    "color": self.match.railroad.get_color("B")
                 }
             },
         )
@@ -149,12 +166,14 @@ class Controller(object):
                 "A":
                 {
                     "id": self.match.bridge.get_crack_ID("A"),
-                    "damage_remaining": self.match.bridge.get_damage_remaining("A")
+                    "damage_remaining": self.match.bridge.get_damage_remaining("A"),
+                    "color": self.match.bridge.get_color("A")
                 },
                 "B":
                 {
                     "id":  self.match.bridge.get_crack_ID("B"),
-                    "damage_remaining": self.match.bridge.get_damage_remaining("B")
+                    "damage_remaining": self.match.bridge.get_damage_remaining("B"),
+                    "color": self.match.bridge.get_color("B")
                 }
             },
         )
@@ -167,51 +186,49 @@ class Controller(object):
                 "A":
                 {
                     "id": self.match.power_lines.get_line_ID("A"),
-                    "damaged": self.match.power_lines.get_damage("A")
+                    "damaged": self.match.power_lines.get_damage("A"),
+                    "color": self.match.power_lines.get_color("A")
                 },
                 "B":
                 {
                     "id": self.match.power_lines.get_line_ID("B"),
-                    "damaged": self.match.power_lines.get_damage("B")
+                    "damaged": self.match.power_lines.get_damage("B"),
+                    "color": self.match.power_lines.get_color("B")
                 }
             },
         )
 
 
-    def generate_LED_dict(self, strip):
+    def generate_LED_dict(self, crack:Crack):
         strip_len = 30
         data = {}
         data["pixel_data"] = []
         for i in range(0, strip_len):
             data["pixel_data"].append([0, 0, 0])
 
-        # fire_level = building.current_fire_level
-        # init = building.initial_fire_level
-        # pixels_per_fs = 2 if init <= 8 else 1
+        if crack is not None:
+            damage_level = crack.damage_remaining
 
-        # if fire_level > (init // 2):
-        #     left = (init // 2) * pixels_per_fs
-        #     right = (fire_level - (init // 2)) * pixels_per_fs
-        # elif fire_level <= (init // 2):
-        #     left = fire_level * pixels_per_fs
-        #     right = 0
-        # else:
-        #     left = 0
-        #     right = 0
-
-        # # do the first window's portion of the led strip
-        # if left > 0:
-        #     for i in range(0, left):
-        #         data["pixel_data"][i] = [0, 0, 255]
-        # # do the second window's portion of the led strip
-        # if right > 0:
-        #     for i in range(strip_len - 1, strip_len - 1 - right, -1):
-        #         data["pixel_data"][i] = [0, 0, 255]
+            for i in range(0, 6 * damage_level):
+                data["pixel_data"][i] = [0, 0, 255]
 
         return data
-    # def publish_LED_bar_commands(self):
-    #     data = self.generate_LED_dict(bridge = self.match.bridge)
-    #     self.mqtt_client.publish(f"{entity_id}/progress_bar/set", data)
+
+    def publish_LED_bar_commands(self):
+        # bridge
+        id_A = self.match.bridge.get_crack_ID("A")
+        id_B = self.match.bridge.get_crack_ID("B")
+
+        # determine who gets left bar
+        if id_A < id_B:
+            left_data = self.generate_LED_dict(self.match.bridge.crack_A) # type:ignore
+            right_data = self.generate_LED_dict(self.match.bridge.crack_B) # type:ignore
+        else:
+            right_data = self.generate_LED_dict(self.match.bridge.crack_A) # type:ignore
+            left_data = self.generate_LED_dict(self.match.bridge.crack_B) # type:ignore
+
+        self.mqtt_client.publish(f"1/progress_bar/set", left_data)
+        self.mqtt_client.publish(f"3/progress_bar/set", right_data)
 
     def publish_railroad_commands(self):
 
@@ -220,40 +237,53 @@ class Controller(object):
         id_B = self.match.railroad.get_damaged_spot_ID("B")
 
         for spot in self.match.railroad.damaged_spots:
+            command = "off"
             if spot.id in [id_A, id_B]:
-                self.mqtt_client.publish(
-                    f"railroad/relay/set", {"channel": spot.id, "state": "on"}
-                )
-            else:
-                self.mqtt_client.publish(
-                    f"railroad/relay/set", {"channel": spot.id, "state": "off"}
-                )
+                command = "on"
+
+            self.mqtt_client.publish(
+                f"{self.railroad_id}/relay/set", {"channel": spot.id, "state": command}
+            )
     def publish_bridge_commands(self):
         # bridge
         id_A = self.match.bridge.get_crack_ID("A")
         id_B = self.match.bridge.get_crack_ID("B")
 
         for spot in self.match.bridge.cracks:
+            command = "off"
             if spot.id in [id_A, id_B]:
-                self.mqtt_client.publish(
-                    f"bridge/relay/set", {"channel": spot.id, "state": "on"}
-                )
+                command = "on"
+
+            # do some magic to back calculate the pi id from the crack id
+            channel = 0
+            id=0
+            if self.is_odd(spot.id):
+                id = spot.id + 1
+                channel = 1
             else:
-                self.mqtt_client.publish(
-                    f"bridge/relay/set", {"channel": spot.id, "state": "off"}
+                id = spot.id
+                channel = 2
+
+            id = int(id / 2)
+
+            # saed made me add 6 to solve his wiring issue
+            self.mqtt_client.publish(
+                    f"{id}/relay/set", {"channel": channel + 6, "state": command}
                 )
 
     def publish_power_line_commands(self):
         heater_channel = 1
         for line in self.match.power_lines.lines:
+            command = "off"
             if line.sm.state.name == "heating_state":
-                self.mqtt_client.publish(
-                    f"power_line/relay/set", {"channel": line.id, "state": "on"}
+                command = "on"
+
+            self.mqtt_client.publish(
+                    f"{self.power_line_id}/relay/set", {"channel": line.id, "state": command}
                 )
-            else:
-                self.mqtt_client.publish(
-                    f"power_line/relay/set", {"channel": line.id, "state": "off"}
-                )
+
+    def is_odd(self, number):
+        return bool(number % 2)
 
     def run(self):
         self.mqtt_client.start_threaded()
@@ -272,7 +302,7 @@ class Controller(object):
                 self.publish_railroad_commands()
                 self.publish_power_line_commands()
                 self.publish_bridge_commands()
-                # self.publish_LED_bar_commands()
+                self.publish_LED_bar_commands()
                 last_update_time = time.time()
             self.publish_toggles()
             time.sleep(0.1)

@@ -155,8 +155,12 @@ class MatchModel(object):
         self.sm_lock.release()
 
     def idle_enter(self, state, enter):
-        self.random_hotspot = ""
         self.reset_ui_toggles()
+        self.match_timer.reset()
+        self.phase_timer.reset()
+        self.power_lines.reset()
+        self.bridge.reset()
+        self.railroad.reset()
 
     def phase_one_enter(self, state, event):
         logger.debug("starting phase 1 timer thread!")
@@ -168,18 +172,21 @@ class MatchModel(object):
         self.match_timer.function = None
         self.match_timer.set_timeout(self.phase_i_duration + self.phase_ii_duration + self.phase_iii_duration + self.phase_iv_duration)
         self.match_timer.start()
+        self.railroad.enable()
 
     def phase_two_enter(self, state, event):
         logger.debug("starting phase 2 timer!")
         self.phase_timer.function = self.phase_ii_timeout
         self.phase_timer.set_timeout(self.phase_ii_duration)
         self.phase_timer.start()
+        self.bridge.enable()
 
     def phase_three_enter(self, state, event):
         logger.debug("starting phase 3 timer!")
         self.phase_timer.function = self.phase_iii_timeout
         self.phase_timer.set_timeout(self.phase_iii_duration)
         self.phase_timer.start()
+        self.power_lines.enable()
 
     def phase_four_enter(self, state, event):
         logger.debug("starting phase 4 timer!")
@@ -259,6 +266,15 @@ class MatchModel(object):
 
     def calculate_phase_ii(self):
         score = 0
+
+        # only run this calc during phase 2
+        if self.sm.state.name == "phase_2_state":
+            repaired = 0
+            if self.bridge.crack_A.damage_remaining == 0:
+                repaired += 1
+            if self.bridge.crack_B.damage_remaining == 0:
+                repaired +=1
+            self.ui_toggles["m2_dexi_weld_repairs"] = repaired
 
         score = score + (self.ui_toggles["m2_dexi_IR_beams_located"] * 3)
         score = score + (self.ui_toggles["m2_dexi_AT_recognized"] * 3)

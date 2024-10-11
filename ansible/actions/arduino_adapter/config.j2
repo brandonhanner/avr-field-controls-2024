@@ -1,5 +1,6 @@
 {
     "mqtt_broker": "{{ mqtt_broker }}",
     "serial_port": "{{ serial_port }}",
-    "id":"{{ inventory_hostname }}"
+    "id":"{{ inventory_hostname }}",
+    "has_led_strip": {{ "true" if has_led_strip is defined else "false" }}
 }

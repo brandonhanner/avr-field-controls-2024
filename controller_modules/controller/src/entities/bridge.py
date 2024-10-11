@@ -1,10 +1,13 @@
 import random
 from typing import Union
+import sys
+sys.path.append("..") # Adds higher directory to python modules path.
+from entities.apriltag import AprilTag
 
 class Crack(object):
-    def __init__(self, id: int, color: str):
+    def __init__(self, id: int, apriltag: AprilTag):
         self.id:int  = id
-        self.color: str = color
+        self.apriltag = apriltag
         self.init_damage = 5
         self.damage_remaining = self.init_damage
 
@@ -23,12 +26,12 @@ class Bridge(object):
         # 1-6
         self.cracks = []
 
-        self.cracks.append(Crack(1, "red"))
-        self.cracks.append(Crack(2, "blue"))
-        self.cracks.append(Crack(3, "yellow"))
-        self.cracks.append(Crack(4, "red"))
-        self.cracks.append(Crack(5, "blue"))
-        self.cracks.append(Crack(6, "yellow"))
+        self.cracks.append(Crack(1, AprilTag(3)))
+        self.cracks.append(Crack(2, AprilTag(1)))
+        self.cracks.append(Crack(3, AprilTag(5)))
+        self.cracks.append(Crack(4, AprilTag(4)))
+        self.cracks.append(Crack(5, AprilTag(2)))
+        self.cracks.append(Crack(6, AprilTag(6)))
 
         self.crack_A: Union[Crack, None] = None
         self.crack_B: Union[Crack, None] = None
@@ -40,7 +43,8 @@ class Bridge(object):
 
     def reset(self):
         self.enabled = False
-
+        self.crack_A = None
+        self.crack_B = None
         for crack in self.cracks:
             crack.reset()
 
@@ -57,6 +61,11 @@ class Bridge(object):
 
         self.crack_B = b
 
+        if self.crack_B.id < self.crack_A.id:
+            temp = self.crack_A
+            self.crack_A = self.crack_B
+            self.crack_B = temp
+
 
     def get_crack_ID(self, which_spot):
         '''
@@ -72,9 +81,18 @@ class Bridge(object):
         put in either 'A'or 'B' to get the remaining damage for that spot
         '''
         if which_spot == "A":
-            return self.crack_A.damage_remaining if self.crack_A is not None else 999
+            return self.crack_A.damage_remaining if self.crack_A is not None else 0
         else:
-            return self.crack_B.damage_remaining if self.crack_B is not None else 999
+            return self.crack_B.damage_remaining if self.crack_B is not None else 0
+
+    def get_color(self, which_spot):
+        '''
+        put in either 'A'or 'B' to get the remaining damage for that spot
+        '''
+        if which_spot == "A":
+            return self.crack_A.apriltag.color if self.crack_A is not None else "None"
+        else:
+            return self.crack_B.apriltag.color if self.crack_B is not None else "None"
 
     def enable(self):
         self.enabled = True

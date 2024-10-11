@@ -6,11 +6,13 @@ from pysm import State, StateMachine, Event
 from loguru import logger
 from threading import Lock, Thread
 import time
+from entities.apriltag import AprilTag
+from typing import List
 
 class PowerLine(object):
-    def __init__(self, id: int, color: str):
+    def __init__(self, id: int, apriltag: AprilTag):
         self.id:int  = id
-        self.color: str = color
+        self.apriltag: AprilTag = apriltag
         self.heater_timer = timer.Timer()
         self.heater_duration = 120
         self.damaged = False
@@ -84,12 +86,12 @@ class Powerlines(object):
 
         self.enabled = False
 
-        self.lines = []
-        self.lines.append(PowerLine(1, "red"))
-        self.lines.append(PowerLine(2, "blue"))
-        self.lines.append(PowerLine(3, "yellow"))
-        self.lines.append(PowerLine(4, "red"))
-        self.lines.append(PowerLine(5, "blue"))
+        self.lines: List[PowerLine] = []
+        self.lines.append(PowerLine(1, AprilTag(1)))
+        self.lines.append(PowerLine(2, AprilTag(2)))
+        self.lines.append(PowerLine(3, AprilTag(3)))
+        self.lines.append(PowerLine(4, AprilTag(4)))
+        self.lines.append(PowerLine(5, AprilTag(5)))
 
         self.max_power_poles = 5
 
@@ -143,6 +145,15 @@ class Powerlines(object):
             return self.damaged_spot_A.damaged if self.damaged_spot_A is not None else False
         if slot == "B" :
             return self.damaged_spot_B.damaged if self.damaged_spot_B is not None else False
+        else:
+            raise ValueError("Gotta be A or B pal")
+
+    def get_color(self, slot):
+
+        if slot == "A" :
+            return self.damaged_spot_A.apriltag.color if self.damaged_spot_A is not None else "None"
+        if slot == "B" :
+            return self.damaged_spot_B.apriltag.color if self.damaged_spot_B is not None else "None"
         else:
             raise ValueError("Gotta be A or B pal")
 

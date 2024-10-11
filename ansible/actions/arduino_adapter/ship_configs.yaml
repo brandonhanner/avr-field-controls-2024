@@ -21,3 +21,10 @@
   ansible.builtin.template:
     src: "{{ project_root }}/ansible/actions/arduino_adapter/docker-compose.j2"
     dest: "{{ data_root }}/docker-compose.yaml"
+  when: (speedy_deploy is defined and speedy_deploy == false) or (speedy_deploy is undefined)
+
+- name: Generate Compose File.
+  ansible.builtin.template:
+    src: "{{ project_root }}/ansible/actions/arduino_adapter/docker-compose-speedy.j2"
+    dest: "{{ data_root }}/docker-compose.yaml"
+  when: (speedy_deploy is defined and speedy_deploy == true) | default(false)
