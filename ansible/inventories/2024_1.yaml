@@ -2,8 +2,8 @@
 assets:
   vars:
     tarfile: arduino.tar
-    controller_tar: field_controller.tar
-    mqtt_broker: 192.168.1.58
+    controller_tar: controller.tar
+    mqtt_broker: 192.168.1.100
     serial_port: /dev/ttyACM0
     interface: eth0
     username: ubuntu

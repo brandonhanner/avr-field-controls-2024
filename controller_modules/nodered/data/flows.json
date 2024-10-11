@@ -32,6 +32,14 @@
         "env": []
     },
     {
+        "id": "3ae03cfaac67bf6a",
+        "type": "tab",
+        "label": "Time",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "a52d199521293c21",
         "type": "ui_tab",
         "name": "Field Operations",
@@ -403,15 +411,6 @@
         "height": 1
     },
     {
-        "id": "f3a8a67ff0904e39",
-        "type": "ui_tab",
-        "name": "HOME",
-        "icon": "dashboard",
-        "order": 2,
-        "disabled": false,
-        "hidden": false
-    },
-    {
         "id": "69ddac28d0b59809",
         "type": "ui_spacer",
         "z": "03a81b1a548b2458",
@@ -440,6 +439,26 @@
         "order": 10,
         "width": 1,
         "height": 1
+    },
+    {
+        "id": "90dfb669a69f4602",
+        "type": "ui_tab",
+        "name": "Time",
+        "icon": "dashboard",
+        "order": 5,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "753513d97c059431",
+        "type": "ui_group",
+        "name": "Time",
+        "tab": "90dfb669a69f4602",
+        "order": 1,
+        "disp": false,
+        "width": "25",
+        "collapse": false,
+        "className": ""
     },
     {
         "id": "48faa7beaea8352b",
@@ -5643,5 +5662,131 @@
         "wires": [
             []
         ]
+    },
+    {
+        "id": "3d0e52f5fecf684d",
+        "type": "mqtt in",
+        "z": "3ae03cfaac67bf6a",
+        "name": "",
+        "topic": "ui/state/match_remaining",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "7a77a26bef88c80e",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 450,
+        "y": 480,
+        "wires": [
+            [
+                "7ec3e18e40a2eea0"
+            ]
+        ]
+    },
+    {
+        "id": "7ec3e18e40a2eea0",
+        "type": "ui_text",
+        "z": "3ae03cfaac67bf6a",
+        "group": "753513d97c059431",
+        "order": 2,
+        "width": "25",
+        "height": "5",
+        "name": "",
+        "label": "Match Remaining",
+        "format": "{{msg.payload[\"time\"]}}",
+        "layout": "col-center",
+        "className": "",
+        "style": true,
+        "font": "",
+        "fontSize": "72",
+        "color": "#ff0000",
+        "x": 850,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "fe56158066117710",
+        "type": "mqtt in",
+        "z": "3ae03cfaac67bf6a",
+        "name": "",
+        "topic": "ui/state/match_state",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "7a77a26bef88c80e",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 470,
+        "y": 440,
+        "wires": [
+            [
+                "e0090621e0e5c1e9"
+            ]
+        ]
+    },
+    {
+        "id": "e0090621e0e5c1e9",
+        "type": "ui_text",
+        "z": "3ae03cfaac67bf6a",
+        "group": "753513d97c059431",
+        "order": 1,
+        "width": "25",
+        "height": "3",
+        "name": "",
+        "label": "Game State",
+        "format": "{{msg.payload[\"state\"]}}",
+        "layout": "row-center",
+        "className": "",
+        "style": true,
+        "font": "",
+        "fontSize": "72",
+        "color": "#ff0000",
+        "x": 850,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "95b503f051ca6e25",
+        "type": "mqtt in",
+        "z": "3ae03cfaac67bf6a",
+        "name": "",
+        "topic": "ui/state/phase_remaining",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "7a77a26bef88c80e",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 450,
+        "y": 520,
+        "wires": [
+            [
+                "1083ec8f08417e10"
+            ]
+        ]
+    },
+    {
+        "id": "1083ec8f08417e10",
+        "type": "ui_text",
+        "z": "3ae03cfaac67bf6a",
+        "group": "753513d97c059431",
+        "order": 3,
+        "width": "25",
+        "height": "5",
+        "name": "",
+        "label": "Phase Remaining",
+        "format": "{{msg.payload[\"time\"]}}",
+        "layout": "col-center",
+        "className": "",
+        "style": true,
+        "font": "",
+        "fontSize": "72",
+        "color": "#ff0000",
+        "x": 850,
+        "y": 740,
+        "wires": []
     }
 ]

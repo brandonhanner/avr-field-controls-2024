@@ -3,6 +3,7 @@ from typing import Union
 import sys
 sys.path.append("..") # Adds higher directory to python modules path.
 from entities.apriltag import AprilTag
+import time
 
 class Crack(object):
     def __init__(self, id: int, apriltag: AprilTag):
@@ -10,6 +11,7 @@ class Crack(object):
         self.apriltag = apriltag
         self.init_damage = 5
         self.damage_remaining = self.init_damage
+        self.last_damage_repair = time.time()
 
     def reset(self):
         self.damage_remaining = self.init_damage
@@ -17,6 +19,7 @@ class Crack(object):
     def repair_damage(self):
         if self.damage_remaining > 0:
             self.damage_remaining -= 1
+            self.last_damage_repair = time.time()
 
 
 class Bridge(object):
@@ -29,8 +32,8 @@ class Bridge(object):
         self.cracks.append(Crack(1, AprilTag(3)))
         self.cracks.append(Crack(2, AprilTag(1)))
         self.cracks.append(Crack(3, AprilTag(5)))
-        self.cracks.append(Crack(4, AprilTag(4)))
-        self.cracks.append(Crack(5, AprilTag(2)))
+        self.cracks.append(Crack(4, AprilTag(2)))
+        self.cracks.append(Crack(5, AprilTag(4)))
         self.cracks.append(Crack(6, AprilTag(6)))
 
         self.crack_A: Union[Crack, None] = None

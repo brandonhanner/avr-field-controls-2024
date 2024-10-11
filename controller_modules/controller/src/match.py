@@ -11,6 +11,7 @@ import copy
 from entities import power_lines
 from entities import bridge
 from entities import railroad
+from entities import randomizer
 
 
 class MatchModel(object):
@@ -24,6 +25,7 @@ class MatchModel(object):
         self.power_lines = power_lines.Powerlines()
         self.bridge = bridge.Bridge()
         self.railroad = railroad.Railroad()
+        self.randomizer = randomizer.Randomizer()
 
         self.phase_i_duration = self.config.get("phase_1_duration", 60)
         self.phase_ii_duration = self.config.get("phase_2_duration", 120)
@@ -200,35 +202,38 @@ class MatchModel(object):
 
     def post_match_exit(self, state, event):
         match_id = self.ui_toggles["match_id"]
-        # if match_id != "" and self.calculate_score() > 0:
+        if match_id != "" and self.calculate_score() > 0:
 
-        #         score_json = copy.deepcopy(self.ui_toggles)
-        #         score_json["buildings"] = {}
-        #         for id, building in self.fire_buildings.items():
-        #             score_json["buildings"][str(id)] = {}
-        #             score_json["buildings"][str(id)]["hits"] = building.get_hits()
-        #             score_json["buildings"][str(id)]["windows"] = building.get_windows()
+                score_json = copy.deepcopy(self.ui_toggles)
+                score_json["railroad"]
+                score_json["bridge"] = self.generate_bridge_data()
+                score_json["railroad"] = self.generate_railroad_data()
+                score_json["poles"] = self.generate_powerline_data()
 
-        #         score_json["safezone"] = str(self.safezone)
-        #         score_json["hotspot"] = str(self.random_hotspot)
+                score_json["phase_i_score"] = self.calculate_phase_i()
+                score_json["phase_ii_score"] = self.calculate_phase_ii()
+                score_json["phase_iii_score"] = self.calculate_phase_iii()
+                score_json["phase_iv_score"] = self.calculate_phase_iv()
+                score_json["total_score"] = self.calculate_score()
 
-        #         score_json["phase_i_score"] = self.calculate_phase_i()
-        #         score_json["phase_ii_score"] = self.calculate_phase_ii()
-        #         score_json["phase_iii_score"] = self.calculate_phase_iii()
-        #         score_json["total_score"] = self.calculate_score()
-
-        #         filename = match_id
-        #         filename = filename.replace("-", "_")
-        #         filename = "".join([c for c in filename if re.match(r'\w', c)])
-        #         with open(f"/logs/{filename}.json","w") as file:
-        #             file.write(json.dumps(score_json, indent=2))
+                filename = match_id
+                filename = filename.replace("-", "_")
+                filename = "".join([c for c in filename if re.match(r'\w', c)])
+                with open(f"/logs/{filename}.json","w") as file:
+                    file.write(json.dumps(score_json, indent=2))
 
 
     def sm_randomize_everything(self, state, event):
         logger.debug(f"Randomizing Everything")
-        self.power_lines.randomize_damaged_spots()
-        self.bridge.randomize_damaged_spots()
-        self.railroad.randomize_damaged_spots()
+        self.randomizer.randomize()
+        self.bridge.crack_A = self.bridge.cracks[self.randomizer.bridge_A["id"]-1] # type: ignore
+        self.bridge.crack_B = self.bridge.cracks[self.randomizer.bridge_B["id"]-1] # type: ignore
+
+        self.railroad.damaged_spot_A = self.railroad.damaged_spots[self.randomizer.railroad_A["id"]-1] #type: ignore
+        self.railroad.damaged_spot_B = self.railroad.damaged_spots[self.randomizer.railroad_B["id"]-1] #type: ignore
+
+        self.power_lines.damaged_spot_A = self.power_lines.lines[self.randomizer.pole_A["id"]-1] #type: ignore
+        self.power_lines.damaged_spot_B = self.power_lines.lines[self.randomizer.pole_B["id"]-1] #type: ignore
 
     def phase_i_timeout(self):
          self.dispatch(Event("phase_i_timeout_event"))
@@ -341,11 +346,54 @@ class MatchModel(object):
         payload = data.get("payload", None)
         if toggle in self.ui_toggles.keys():
             self.ui_toggles[toggle] = payload
-
-            # #handle the special case
-            # if toggle == "match_id":
-            #     self.ui_toggles[toggle] = payload
-            # elif isinstance(payload, bool) or isinstance(payload, int):
-            #     self.ui_toggles[toggle] = payload
         else:
             logger.debug(f"{toggle} not in toggles dict")
+
+    def generate_powerline_data(self):
+        data = {
+                    "A":
+                    {
+                        "id": self.power_lines.get_line_ID("A"),
+                        "damaged": self.power_lines.get_damage("A"),
+                        "color": self.power_lines.get_color("A")
+                    },
+                    "B":
+                    {
+                        "id": self.power_lines.get_line_ID("B"),
+                        "damaged": self.power_lines.get_damage("B"),
+                        "color": self.power_lines.get_color("B")
+                    }
+                }
+        return data
+    def generate_bridge_data(self):
+        data = {
+                    "A":
+                    {
+                        "id": self.bridge.get_crack_ID("A"),
+                        "damage_remaining": self.bridge.get_damage_remaining("A"),
+                        "color": self.bridge.get_color("A")
+                    },
+                    "B":
+                    {
+                        "id":  self.bridge.get_crack_ID("B"),
+                        "damage_remaining": self.bridge.get_damage_remaining("B"),
+                        "color": self.bridge.get_color("B")
+                    }
+               }
+        return data
+    def generate_railroad_data(self):
+        data = {
+                    "A":
+                    {
+                        "id": self.railroad.get_damaged_spot_ID("A"),
+                        "damaged": self.railroad.get_damage("A"),
+                        "color": self.railroad.get_color("A")
+                    },
+                    "B":
+                    {
+                        "id": self.railroad.get_damaged_spot_ID("B"),
+                        "damaged": self.railroad.get_damage("B"),
+                        "color": self.railroad.get_color("B")
+                    }
+               }
+        return data

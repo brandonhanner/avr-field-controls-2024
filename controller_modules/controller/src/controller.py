@@ -133,7 +133,7 @@ class Controller(object):
 
         time_left = 0
         for line in self.match.power_lines.lines:
-            if line.sm.state.name == "heating_state":
+            if line.sm.state.name == "heating_state": #type: ignore
                 time_left = line.heater_timer.time_remaining
 
         self.mqtt_client.publish("ui/state/heater_countdown", {"time": time_left})
@@ -142,60 +142,21 @@ class Controller(object):
         # publish the hot spot building
         self.mqtt_client.publish(
             "ui/state/railroad/damaged_spots",
-            {
-                "A":
-                {
-                    "id": self.match.railroad.get_damaged_spot_ID("A"),
-                    "damaged": self.match.railroad.get_damage("A"),
-                    "color": self.match.railroad.get_color("A")
-                },
-                "B":
-                {
-                    "id": self.match.railroad.get_damaged_spot_ID("B"),
-                    "damaged": self.match.railroad.get_damage("B"),
-                    "color": self.match.railroad.get_color("B")
-                }
-            },
+            self.match.generate_railroad_data(),
         )
 
     def publish_bridge_damaged_spots(self):
         # publish the hot spot building
         self.mqtt_client.publish(
             "ui/state/bridge/damaged_spots",
-            {
-                "A":
-                {
-                    "id": self.match.bridge.get_crack_ID("A"),
-                    "damage_remaining": self.match.bridge.get_damage_remaining("A"),
-                    "color": self.match.bridge.get_color("A")
-                },
-                "B":
-                {
-                    "id":  self.match.bridge.get_crack_ID("B"),
-                    "damage_remaining": self.match.bridge.get_damage_remaining("B"),
-                    "color": self.match.bridge.get_color("B")
-                }
-            },
+            self.match.generate_bridge_data(),
         )
 
     def publish_powerline_damaged_spots(self):
         # publish the hot spot building
         self.mqtt_client.publish(
             "ui/state/powerlines/damaged_spots",
-            {
-                "A":
-                {
-                    "id": self.match.power_lines.get_line_ID("A"),
-                    "damaged": self.match.power_lines.get_damage("A"),
-                    "color": self.match.power_lines.get_color("A")
-                },
-                "B":
-                {
-                    "id": self.match.power_lines.get_line_ID("B"),
-                    "damaged": self.match.power_lines.get_damage("B"),
-                    "color": self.match.power_lines.get_color("B")
-                }
-            },
+            self.match.generate_powerline_data(),
         )
 
 
@@ -207,10 +168,22 @@ class Controller(object):
             data["pixel_data"].append([0, 0, 0])
 
         if crack is not None:
+            last_update_time = crack.last_damage_repair
+
+            if time.time() - last_update_time > 1:
+                color = "blue"
+            else:
+                color = "red"
+
+            if color == "red":
+                arr = [255, 0, 0]
+            elif color == "blue":
+                arr = [0, 0, 255]
+
             damage_level = crack.damage_remaining
 
             for i in range(0, 6 * damage_level):
-                data["pixel_data"][i] = [0, 0, 255]
+                data["pixel_data"][i] = arr
 
         return data
 
@@ -275,7 +248,7 @@ class Controller(object):
         heater_channel = 1
         for line in self.match.power_lines.lines:
             command = "off"
-            if line.sm.state.name == "heating_state":
+            if line.sm.state.name == "heating_state": #type: ignore
                 command = "on"
 
             self.mqtt_client.publish(
@@ -289,7 +262,7 @@ class Controller(object):
         self.mqtt_client.start_threaded()
         last_update_time = time.time()
         while True:
-            if time.time() - last_update_time > .5:
+            if time.time() - last_update_time > .3:
                 # publish UI data
                 self.publish_score()
                 self.publish_bridge_table()
