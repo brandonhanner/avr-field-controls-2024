@@ -1,0 +1,80 @@
+---
+assets:
+  vars:
+    tarfile: arduino.tar
+    controller_tar: controller.tar
+    mqtt_broker: 192.168.1.100
+    serial_port: /dev/ttyACM0
+    interface: eth0
+    username: ubuntu
+    pw: bellavr23
+    sync_clocks: true
+    cleanup: true
+  hosts:
+    ############################################################################################################
+    ######################################### R A S P B E R R Y  P I S #########################################
+    ############################################################################################################
+    CONTROLLER:
+      ansible_host: 192.168.1.100
+      ansible_user: "{{ username }}"
+      ansible_ssh_pass: "{{ pw }}"
+      ansible_become_password: "{{ ansible_ssh_pass }}"
+      data_root: /home/{{ ansible_user }}
+      containers:
+        - image: "{{ controller_tar }}"
+          type: "controller"
+        - image: "mosquitto.tar"
+          type: "controller"
+        - image: "nodered.tar"
+          type: "controller"
+    "1": #bridge1
+      ansible_host: 192.168.1.216
+      ansible_user: "{{ username }}"
+      ansible_ssh_pass: "{{ pw }}"
+      ansible_become_password: "{{ ansible_ssh_pass }}"
+      data_root: /home/{{ ansible_user }}
+      containers:
+        - image: "{{ tarfile }}"
+      has_led_strip: true
+      speedy_deploy: true
+
+    "2": #bridge2
+      ansible_host: 192.168.1.217
+      ansible_user: "{{ username }}"
+      ansible_ssh_pass: "{{ pw }}"
+      ansible_become_password: "{{ ansible_ssh_pass }}"
+      data_root: /home/{{ ansible_user }}
+      containers:
+        - image: "{{ tarfile }}"
+      speedy_deploy: true
+
+    "3": #bridge3
+      ansible_host: 192.168.1.215
+      ansible_user: "{{ username }}"
+      ansible_ssh_pass: "{{ pw }}"
+      ansible_become_password: "{{ ansible_ssh_pass }}"
+      data_root: /home/{{ ansible_user }}
+      containers:
+        - image: "{{ tarfile }}"
+      has_led_strip: true
+      speedy_deploy: true
+
+    "4": #powerline
+      ansible_host: 192.168.1.214
+      ansible_user: "{{ username }}"
+      ansible_ssh_pass: "{{ pw }}"
+      ansible_become_password: "{{ ansible_ssh_pass }}"
+      data_root: /home/{{ ansible_user }}
+      containers:
+        - image: "{{ tarfile }}"
+      speedy_deploy: true
+
+    "5": #railroad
+      ansible_host: 192.168.1.212
+      ansible_user: "{{ username }}"
+      ansible_ssh_pass: "{{ pw }}"
+      ansible_become_password: "{{ ansible_ssh_pass }}"
+      data_root: /home/{{ ansible_user }}
+      containers:
+        - image: "{{ tarfile }}"
+      speedy_deploy: true

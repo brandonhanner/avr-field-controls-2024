@@ -24,9 +24,11 @@ assets:
         - image: "{{ controller_tar }}"
           type: "controller"
         - image: "mosquitto.tar"
+          type: "controller"
         - image: "nodered.tar"
-    "1": #Laser building 1 - A
-      ansible_host: 192.168.1.221
+          type: "controller"
+    "1": #bridge1
+      ansible_host: 192.168.1.54
       ansible_user: "{{ username }}"
       ansible_ssh_pass: "{{ pw }}"
       ansible_become_password: "{{ ansible_ssh_pass }}"
@@ -36,8 +38,8 @@ assets:
       has_led_strip: true
       speedy_deploy: true
 
-    "2": #Laser building 2 - B
-      ansible_host: 192.168.1.220
+    "2": #bridge2
+      ansible_host: 192.168.1.53
       ansible_user: "{{ username }}"
       ansible_ssh_pass: "{{ pw }}"
       ansible_become_password: "{{ ansible_ssh_pass }}"
@@ -46,8 +48,8 @@ assets:
         - image: "{{ tarfile }}"
       speedy_deploy: true
 
-    "3": #Laser building 3 - C
-      ansible_host: 192.168.1.222
+    "3": #bridge3
+      ansible_host: 192.168.1.52
       ansible_user: "{{ username }}"
       ansible_ssh_pass: "{{ pw }}"
       ansible_become_password: "{{ ansible_ssh_pass }}"
@@ -57,8 +59,8 @@ assets:
       has_led_strip: true
       speedy_deploy: true
 
-    "4": #Ball building 1 - D
-      ansible_host: 192.168.1.155
+    "4": #powerline
+      ansible_host: 192.168.1.55
       ansible_user: "{{ username }}"
       ansible_ssh_pass: "{{ pw }}"
       ansible_become_password: "{{ ansible_ssh_pass }}"
@@ -67,8 +69,8 @@ assets:
         - image: "{{ tarfile }}"
       speedy_deploy: true
 
-    "5": #Laser building 2 - E
-      ansible_host: 192.168.1.161
+    "5": #railroad
+      ansible_host: 192.168.1.56
       ansible_user: "{{ username }}"
       ansible_ssh_pass: "{{ pw }}"
       ansible_become_password: "{{ ansible_ssh_pass }}"

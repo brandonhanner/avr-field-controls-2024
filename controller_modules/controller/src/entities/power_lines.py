@@ -14,7 +14,7 @@ class PowerLine(object):
         self.id:int  = id
         self.apriltag: AprilTag = apriltag
         self.heater_timer = timer.Timer()
-        self.heater_duration = 120
+        self.heater_duration = 180
         self.damaged = False
 
         #################### S T A T E  M A C H I N E   S T U F F ####################

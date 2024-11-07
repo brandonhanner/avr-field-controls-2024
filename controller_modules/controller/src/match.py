@@ -182,6 +182,7 @@ class MatchModel(object):
         self.phase_timer.set_timeout(self.phase_ii_duration)
         self.phase_timer.start()
         self.bridge.enable()
+        self.start_preheat(None, None)
 
     def phase_three_enter(self, state, event):
         logger.debug("starting phase 3 timer!")
@@ -203,24 +204,25 @@ class MatchModel(object):
     def post_match_exit(self, state, event):
         match_id = self.ui_toggles["match_id"]
         if match_id != "" and self.calculate_score() > 0:
+                try:
+                    score_json = copy.deepcopy(self.ui_toggles)
+                    score_json["bridge"] = self.generate_bridge_data()
+                    score_json["railroad"] = self.generate_railroad_data()
+                    score_json["poles"] = self.generate_powerline_data()
 
-                score_json = copy.deepcopy(self.ui_toggles)
-                score_json["railroad"]
-                score_json["bridge"] = self.generate_bridge_data()
-                score_json["railroad"] = self.generate_railroad_data()
-                score_json["poles"] = self.generate_powerline_data()
+                    score_json["phase_i_score"] = self.calculate_phase_i()
+                    score_json["phase_ii_score"] = self.calculate_phase_ii()
+                    score_json["phase_iii_score"] = self.calculate_phase_iii()
+                    score_json["phase_iv_score"] = self.calculate_phase_iv()
+                    score_json["total_score"] = self.calculate_score()
 
-                score_json["phase_i_score"] = self.calculate_phase_i()
-                score_json["phase_ii_score"] = self.calculate_phase_ii()
-                score_json["phase_iii_score"] = self.calculate_phase_iii()
-                score_json["phase_iv_score"] = self.calculate_phase_iv()
-                score_json["total_score"] = self.calculate_score()
-
-                filename = match_id
-                filename = filename.replace("-", "_")
-                filename = "".join([c for c in filename if re.match(r'\w', c)])
-                with open(f"/logs/{filename}.json","w") as file:
-                    file.write(json.dumps(score_json, indent=2))
+                    filename = match_id
+                    filename = filename.replace("-", "_")
+                    filename = "".join([c for c in filename if re.match(r'\w', c)])
+                    with open(f"/logs/{filename}.json","w") as file:
+                        file.write(json.dumps(score_json, indent=2))
+                except Exception as e:
+                    logger.debug("Score save failed")
 
 
     def sm_randomize_everything(self, state, event):
@@ -248,9 +250,10 @@ class MatchModel(object):
          self.dispatch(Event("phase_iv_timeout_event"))
 
     def start_preheat(self, state, event):
-        if self.power_lines.damaged_spot_A.id != 0 and self.power_lines.damaged_spot_B.id != 0:
-            self.power_lines.damaged_spot_A.ignite()
-            self.power_lines.damaged_spot_B.ignite()
+        if self.power_lines.damaged_spot_A is not None and self.power_lines.damaged_spot_B is not None:
+            if self.power_lines.damaged_spot_A.id != 0 and self.power_lines.damaged_spot_B.id != 0:
+                self.power_lines.damaged_spot_A.ignite()
+                self.power_lines.damaged_spot_B.ignite()
 
     ########################################################
     def calculate_phase_i(self):
