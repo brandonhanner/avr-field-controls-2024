@@ -228,14 +228,17 @@ class Controller(object):
                 command = "on"
 
             # do some magic to back calculate the pi id from the crack id
+
             channel = 0
             id=0
             if self.is_odd(spot.id):
                 id = spot.id + 1
-                channel = 1
+                # channel = 1
+                channel = 2 # this is due to wiring emitters backwards
             else:
                 id = spot.id
-                channel = 2
+                # channel = 2
+                channel = 1 # this is due to wiring emitters backwards
 
             id = int(id / 2)
 
