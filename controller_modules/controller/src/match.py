@@ -12,6 +12,7 @@ from entities import power_lines
 from entities import bridge
 from entities import railroad
 from entities import randomizer
+from queue import Queue
 
 
 class MatchModel(object):
@@ -75,6 +76,8 @@ class MatchModel(object):
             "m4_conex_6_stacks": 0,
         }
         self.ui_toggles = dict(self.ui_toggles_default)
+
+        self.notification_queue = Queue()
 
         ###############################################################################
 
@@ -175,6 +178,7 @@ class MatchModel(object):
         self.match_timer.set_timeout(self.phase_i_duration + self.phase_ii_duration + self.phase_iii_duration + self.phase_iv_duration)
         self.match_timer.start()
         self.railroad.enable()
+        self.notification_queue.put("start")
 
     def phase_two_enter(self, state, event):
         logger.debug("starting phase 2 timer!")
@@ -183,6 +187,7 @@ class MatchModel(object):
         self.phase_timer.start()
         self.bridge.enable()
         self.start_preheat(None, None)
+        self.notification_queue.put("phase_change")
 
     def phase_three_enter(self, state, event):
         logger.debug("starting phase 3 timer!")
@@ -190,16 +195,19 @@ class MatchModel(object):
         self.phase_timer.set_timeout(self.phase_iii_duration)
         self.phase_timer.start()
         self.power_lines.enable()
+        self.notification_queue.put("phase_change")
 
     def phase_four_enter(self, state, event):
         logger.debug("starting phase 4 timer!")
         self.phase_timer.function = self.phase_iv_timeout
         self.phase_timer.set_timeout(self.phase_iv_duration)
         self.phase_timer.start()
+        self.notification_queue.put("phase_change")
 
     def post_match_enter(self, state, event):
         self.match_timer.reset()
         self.phase_timer.reset()
+        self.notification_queue.put("end")
 
     def post_match_exit(self, state, event):
         match_id = self.ui_toggles["match_id"]

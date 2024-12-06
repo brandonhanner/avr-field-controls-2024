@@ -5788,5 +5788,140 @@
         "x": 850,
         "y": 740,
         "wires": []
+    },
+    {
+        "id": "3d7952ee14198c26",
+        "type": "ui_audio",
+        "z": "3ae03cfaac67bf6a",
+        "name": "",
+        "group": "366e589a14f99cf0",
+        "voice": "Organ",
+        "always": true,
+        "x": 800,
+        "y": 980,
+        "wires": []
+    },
+    {
+        "id": "fc6967e407d8a904",
+        "type": "file in",
+        "z": "3ae03cfaac67bf6a",
+        "name": "",
+        "filename": "/data/audio/mixkit-digital-quick-tone-2866.wav",
+        "filenameType": "str",
+        "format": "",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 500,
+        "y": 840,
+        "wires": [
+            [
+                "3d7952ee14198c26"
+            ]
+        ]
+    },
+    {
+        "id": "78b0695f3f72bfa9",
+        "type": "file in",
+        "z": "3ae03cfaac67bf6a",
+        "name": "",
+        "filename": "/data/audio/mixkit-basketball-buzzer-1647.wav",
+        "filenameType": "str",
+        "format": "",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 500,
+        "y": 900,
+        "wires": [
+            [
+                "3d7952ee14198c26"
+            ]
+        ]
+    },
+    {
+        "id": "3faf44167f51fbf9",
+        "type": "file in",
+        "z": "3ae03cfaac67bf6a",
+        "name": "",
+        "filename": "/data/audio/boxing-bell.mp3",
+        "filenameType": "str",
+        "format": "",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 500,
+        "y": 960,
+        "wires": [
+            [
+                "3d7952ee14198c26"
+            ]
+        ]
+    },
+    {
+        "id": "1fdf7cf0f266b596",
+        "type": "mqtt in",
+        "z": "3ae03cfaac67bf6a",
+        "name": "",
+        "topic": "ui/notifications/start",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "7a77a26bef88c80e",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 130,
+        "y": 960,
+        "wires": [
+            [
+                "3faf44167f51fbf9"
+            ]
+        ]
+    },
+    {
+        "id": "1f446853c87465cd",
+        "type": "mqtt in",
+        "z": "3ae03cfaac67bf6a",
+        "name": "",
+        "topic": "ui/notifications/end",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "7a77a26bef88c80e",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 130,
+        "y": 900,
+        "wires": [
+            [
+                "78b0695f3f72bfa9"
+            ]
+        ]
+    },
+    {
+        "id": "c4a1c4a34e520088",
+        "type": "mqtt in",
+        "z": "3ae03cfaac67bf6a",
+        "name": "",
+        "topic": "ui/notifications/phase_change",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "7a77a26bef88c80e",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 120,
+        "y": 840,
+        "wires": [
+            [
+                "fc6967e407d8a904"
+            ]
+        ]
     }
 ]

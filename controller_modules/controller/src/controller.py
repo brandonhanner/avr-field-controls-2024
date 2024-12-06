@@ -7,6 +7,7 @@ import mqtt_client
 import time
 from loguru import logger
 from entities.bridge import Crack
+from queue import Queue
 
 # ID map
 # 1 bridge 1
@@ -258,6 +259,17 @@ class Controller(object):
                     f"{self.power_line_id}/relay/set", {"channel": line.id, "state": command}
                 )
 
+    def publish_notifications(self):
+        if not self.match.notification_queue.empty():
+            notification = self.match.notification_queue.get()
+            if notification == "start":
+                self.mqtt_client.publish(f"ui/notifications/start", {})
+            elif notification == "phase_change":
+                self.mqtt_client.publish(f"ui/notifications/phase_change", {})
+            elif notification == "end":
+                self.mqtt_client.publish(f"ui/notifications/end", {})
+
+
     def is_odd(self, number):
         return bool(number % 2)
 
@@ -279,6 +291,7 @@ class Controller(object):
                 self.publish_power_line_commands()
                 self.publish_bridge_commands()
                 self.publish_LED_bar_commands()
+                self.publish_notifications()
                 last_update_time = time.time()
             self.publish_toggles()
             time.sleep(0.1)
