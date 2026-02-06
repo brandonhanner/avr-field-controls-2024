@@ -91,6 +91,7 @@ class Controller(object):
         row_data["Site"] = self.match.bridge.get_crack_ID("B")
         row_data["Damage Remaining"] = self.match.bridge.get_damage_remaining("B")
         row_data["State"] = "damaged" if self.match.bridge.get_damage_remaining("B") > 0 else "repaired"
+        table_data.append(row_data)
 
         self.mqtt_client.publish("ui/state/bridge_table_data", table_data)
 

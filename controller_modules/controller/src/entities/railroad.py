@@ -55,7 +55,7 @@ class Railroad(object):
         if which_spot == "A":
             return self.damaged_spot_A.damaged if self.damaged_spot_A is not None else False
         else:
-            return self.damaged_spot_A.damaged if self.damaged_spot_A is not None else False
+            return self.damaged_spot_B.damaged if self.damaged_spot_B is not None else False
 
     def get_color(self, slot):
 

@@ -1,5 +1,8 @@
 .DS_Store
 exports/
+*.wav
+*.mp3
+*.env
 
 # all the nodered stuff below
 

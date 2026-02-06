@@ -79,7 +79,7 @@ class PowerLine(object):
         self.damaged = True
 
     def repair_damage(self):
-        self.damage = False
+        self.damaged = False
 
 class Powerlines(object):
     def __init__(self):
