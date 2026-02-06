@@ -4,6 +4,8 @@ This repository contains the software stack for the AVR Infrastructure Recovery 
 
 The system is a distributed Raspberry Pi + Arduino architecture that simulates and scores post-hurricane infrastructure recovery missions across railways, bridges, and power lines. A central controller Pi hosts the game model and operator UI, while field Pis in structures (bridge, laser sites, hotspots, etc.) handle relays, NeoPixels, and laser detector events.
 
+![AVR Smart Court 2024](images/AVRCourt2024.png)
+
 ## Purpose
 
 
